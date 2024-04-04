@@ -1,0 +1,53 @@
+//
+//  TreeLocation.swift
+//  Logger
+//
+//  Created by Giovanni Cioffi on 3/25/24.
+//
+
+import Foundation
+
+struct TreeLocation: Decodable {
+    var latitude: Double { properties.products.origin.first!.properties.latitude }
+    var longitude: Double { properties.products.origin.first!.properties.longitude }
+    private var properties: RootProperties
+    struct RootProperties: Decodable {
+        var products: Products
+    }
+    struct Products: Decodable {
+        var origin: [Origin]
+    }
+    struct Origin: Decodable {
+        var properties: OriginProperties
+    }
+    struct OriginProperties {
+        var latitude: Double
+        var longitude: Double
+    }
+    
+    init(latitude: Double, longitude: Double) {
+        self.properties =
+            RootProperties(products: Products(origin: [
+                Origin(properties:
+                OriginProperties(latitude: latitude, longitude: longitude))
+            ]))
+    }
+}
+
+extension TreeLocation.OriginProperties: Decodable {
+    private enum OriginPropertiesCodingKeys: String, CodingKey {
+        case latitude
+        case longitude
+    }
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: OriginPropertiesCodingKeys.self)
+        let longitude = try container.decode(String.self, forKey: .longitude)
+        let latitude = try container.decode(String.self, forKey: .latitude)
+        guard let longitude = Double(longitude),
+              let latitude = Double(latitude) else { throw fatalError()}
+        self.longitude = longitude
+        self.latitude = latitude
+    }
+}
+
+
